@@ -1,0 +1,322 @@
+\documentclass{beamer}
+\beamertemplatenavigationsymbolsempty
+
+\usetheme{Antibes}
+
+\usepackage{fancyvrb}
+\usepackage{bookmark}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=white,
+    filecolor=magenta,
+    urlcolor=cyan
+}
+
+\title{
+Isolated and Distributed BGP Attacks, and RPKI -- From the Perspective of RouteViews
+}
+\author{Kevin Conte}
+
+\newcommand{\framedgraphic}[3]{
+    \begin{frame}
+        \frametitle{#1}
+        \begin{center}
+            \includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{#2}
+        \end{center}
+        {\small Source: #3}
+    \end{frame}
+}
+
+\begin{document}
+\begin{frame}
+    \maketitle
+\end{frame}
+
+\begin{frame}
+    \frametitle{Outline}
+    \begin{itemize}
+        \item Background
+        \item Problem and Motivation
+        \item Methodology
+        \item Conclusions
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Background}
+    \pause
+    {\Large BGP (Border Gateway Protocol)}
+    \pause
+    \begin{itemize}
+        \item Protocol that allows Autonomous Systems to communicate. \pause
+        \item Consists of advertisements between AS's \pause
+        \item Peers advertise which prefixes they know how to get to, with the AS path to get there. \pause
+        \begin{itemize}
+            \item This AS path is not necessarily the shortest routing path, but it is the shortest AS path. \pause
+        \end{itemize}
+        \item Importantly, each advertisement includes an Origin AS. \pause
+        \begin{itemize}
+            \item That is, which AS is advertising that it owns a particular prefix
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{BGP Announcements}
+
+    \begin{itemize}
+        \item A BGP announcement consists of the following: Timestamp, Peer ASN, Peer IP, Prefix, AS\_PATH, NEXT\_HOP, Origin AS\pause
+        \item For the following example, assume the Timestamp is the same for both advertisements.\pause
+        \item Also assume that the NEXT\_HOP attribute is the same as the Peer IP\pause
+        \item Here, you can see that two different AS's are advertising that they own the same prefix. This is BAD.
+    \end{itemize}
+
+    \begin{Verbatim}[fontsize=\small]
+Peer ASN, Peer IP, Prefix, AS_PATH, Origin AS
+33437, 2001:4810::1, 2001::/32, 33437 ... 6939, 6939
+3257, 2001:668:0:4::2, 2001::/32, 3257 ... 1101, 1101
+    \end{Verbatim}
+\end{frame}
+
+\framedgraphic{BGP}{pictures/bgp.jpeg}{\href{http://www.noction.com/wp-content/uploads/2012/03/bgp.jpg}{noction.com}}
+
+\begin{frame}[fragile]
+    \frametitle{RPKI Overview}
+    \pause
+    \begin{itemize}
+        \item Resource Public Key Infrastructure \pause
+        \item Introduced in 2011 to add security to BGP \pause
+        \item Developed by the IETF (Internet Engineering Task Force) \pause
+        \item Consists of Route Origin Authorizations (ROAs)
+        \begin{itemize}
+            \item ASN, Prefix, Max Length, Not Before, Not After \pause
+        \end{itemize}
+        \item Such objects, when validated, are called Validated ROA Payloads (VRPs). \pause
+        \item Example:
+    \end{itemize}
+
+    \begin{Verbatim}[fontsize=\small]
+ASN,     Prefix,         Max Length, Not Before, Not After
+AS12345, 128.223.0.0/16, 16,         2011-01-21, 2014-02-28
+    \end{Verbatim}
+\end{frame}
+
+\begin{frame}
+    \frametitle{RPKI, cont.}
+
+    \begin{itemize}
+        \item Also consists of TALs, or Trust Anchor Locations \pause
+        \item RPKI is all based on trust \pause
+        \item Those validating route prefixes against ROAs are trusting the TALs to provide correct information. \pause
+        \item Thus, there are only a handful of TALs: \pause
+        \begin{itemize}
+            \item IANA (Interent Assigned Numbers Authority).
+            \begin{itemize}
+                \item The "root" of the Internet \pause
+            \end{itemize}
+            \item ARIN (American Registry for Internet Numbers) \pause
+            \item APNIC (Asia-Pacific Network Information Centre) \pause
+            \item AFRINIC (African Network Information Centre) \pause
+            \item RIPE NCC (Réseaux IP Européens Network Coordination Centre) \pause
+            \item LACNIC (Latin America and Caribbean Network Information Centre)
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\framedgraphic{RPKI}{pictures/rpki-example.jpeg}{\href{https://labs.ripe.net/Members/waehlisch/copy_of_rpkirtroverview.jpg/image_preview}{labs.ripe.net}}
+
+\framedgraphic{RIRs}{pictures/rirs.png}{\href{https://www.ripe.net/participate/internet-governance/internet-technical-community/the-rir-system/RIPENCCServiceRegionMAP_April201402.jpg}{ripe.net}}
+
+\begin{frame}
+    \frametitle{Problem and Motivation}
+
+    \begin{itemize}
+        \item Taejoong Chung, et. al, RPKI is Coming of Age: A Longitudinal Study of RPKI Deployment and Invalid Route Origins, 2019\pause
+        \item This paper shows a negative correlation between the increase in deployment of RPKI and the decrease in the number of invalid route origins.
+    \end{itemize}
+
+\end{frame}
+
+\framedgraphic{Number of Invalid Origins}{pictures/invalid-origins-chung.png}{Chung, et. al}
+\framedgraphic{RPKI Deployment across the RIR's}{pictures/rpki-deployment-chung.png}{Chung, et. al}
+
+\begin{frame}
+    \frametitle{What I Wanted To Do}
+
+    \begin{itemize}
+        \item Distinguish between BGP Hijacks and BGP Misconfigurations
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Why I Can't Do That}
+
+    \begin{itemize}
+        \item AIMS-KISMET 2020 -- University of California, San Diego \pause
+        \begin{itemize}
+            \item I had the opportunity to meet with several researchers about this topic \pause
+            \item Most notably, Teejay Chung, the primary author of the aforementioned paper \pause
+            \item Researchers have been attempting to do this years \pause
+            \item Best tool we have is \href{https://bgpstream.com/}{CAIDA's BGPstream}
+        \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Example of Impossibility}
+
+    \begin{Verbatim}[fontsize=\small]
+Peer AS, Peer IP, Prefix, AS PATH, Origin AS
+123, 128.223.56.195, 193.56.78.0/24, 123 ... 456, 456
+124, 193.57.223.16, 193.56.78.0/24, 124 ... 557, 557
+    \end{Verbatim}
+    \pause
+
+    \begin{Verbatim}[fontsize=\small]
+125, 190.34.56.23, 193.56.78.0/24, 125 .. 12345, 12345
+    \end{Verbatim}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{What I'm Doing}
+    \pause
+    \begin{itemize}
+        \item Analyzing the trend of both isolated and distributed BGP attacks \pause
+        \item Correlating that trend to the deployment status of RPKI \pause
+        \begin{itemize}
+            \item As of August 2019, RPKI now contains more than 100,000 VRPs. \pause
+            \item This is promising for future success of RPKI
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Datasets}
+    \pause
+    \begin{itemize}
+        \item RouteViews
+        \begin{itemize}
+            \item Courtesy of the University of Oregon
+            \item http://archive.routeviews.org \pause
+        \end{itemize}
+        \item Historical ROA data
+        \begin{itemize}
+            \item Courtesy of RIPE
+            \item https://ftp.ripe.net/rpki
+        \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Tools Used}
+    \pause
+    \begin{itemize}
+        \item For parsing BGP data:
+        \begin{itemize}
+            \item bgpreader (https://bgpstream.caida.org/docs/tools/bgpreader) \pause
+        \end{itemize}
+        \item For parsing Historical ROAs:
+        \begin{itemize}
+            \item Ziggy (https://github.com/NLnetLabs/ziggy)
+            \item Routinator (https://github.com/NLnetLabs/routinator) \pause
+        \end{itemize}
+        \item Also, a mixture of Python 3.8+ and POSIX-compliant shell scripts
+        \begin{itemize}
+            \item Code to be uploaded to github soon...
+        \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Methodology}
+
+    \begin{itemize}
+        \item Define an isolated attack as two discrete AS's advertising ownership of the same prefix \pause
+        \item Define a distributed attack as greater than two discrete AS's advertising ownership of the same prefix \pause
+        \item Samples taken every two days from 21 January 2011 $\rightarrow$ 29 February 2020 \pause
+        \item Compare the trend of isolated and distributed attacks against the deployment status of RPKI \pause
+        \item Step One is to look at deployment trend of RPKI \pause
+        \item Then, look at BGP Attack trends
+    \end{itemize}
+
+\end{frame}
+
+\framedgraphic{RPKI Deployment}{pictures/rpki-deployment-self.png}{Self}
+
+\begin{frame}
+    \frametitle{A Note about the Spike}
+
+    \begin{itemize}
+        \item This is caused by APNIC migrating to a new route management system. \pause
+        \item As a result, there was a bunch of incorrectly validated ROAs \pause
+        \item Clearly, it was fixed quickly
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Distributed Attack Example}
+
+    \begin{itemize}
+        \item Take the previouse BGP announcement example
+        \item Timestamp is: 2011-01-01 12:00 +00:00
+        \item Total of 7 AS's advertising ownership of the same prefix
+        \item Good indicator that this is a distributed attack
+    \end{itemize}
+
+    \begin{Verbatim}[fontsize=\small]
+Peer ASN, Peer IP, Prefix, AS_PATH, Origin AS
+33437, 2001:4810::1, 2001::/32, 33437 ... 6939, 6939
+3257, 2001:668:0:4::2, 2001::/32, 3257 ... 1101, 1101
+7018, 2001:1890:111d::1, 2001::/32, 7018 ... 29259, 29259
+...
+    \end{Verbatim}
+
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{A note about the Results}
+
+    \begin{itemize}
+        \item All results presented are \emph{preliminary}
+        \item Full results will be available in the report.
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Results}
+    \begin{table}
+        \begin{tabular}{l | c | c | c }
+            Internet Protocol & Prefixes & Isolated & Distrubted \\
+            \hline \hline
+            IPv4 & 13144978 & 273429 & 6335 \\
+            IPv6 & 581418 & 6927 & 365 \\
+            \hline
+        \end{tabular}
+        \caption{Summary}
+    \end{table}
+\end{frame}
+
+\framedgraphic{IPv4 Unique Prefixes}{pictures/v4_prefixes.png}{Self}
+\framedgraphic{IPv6 Unique Prefixes}{pictures/v6_prefixes.png}{Self}
+\framedgraphic{IPv4 Isolated Attacks}{pictures/v4_isolated.png}{Self}
+\framedgraphic{IPv6 Isolated Attacks}{pictures/v6_isolated.png}{Self}
+\framedgraphic{IPv4 Distributed Attacks}{pictures/v4_distributed.png}{Self}
+\framedgraphic{IPv6 Distributed Attacks}{pictures/v6_distributed.png}{Self}
+
+\begin{frame}
+
+    {\Large Questions?}
+
+\end{frame}
+
+\end{document}
