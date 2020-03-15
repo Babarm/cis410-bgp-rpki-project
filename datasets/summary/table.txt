@@ -1,0 +1,33 @@
+prefixes
+total v4 prefixes:  14,508,423,286
+unique v4 prefixes: 2,866,018
+total v6 prefixes:  854,637,095
+unique v6 prefixes: 326,627
+
+attacks
+total v4 attacks:   196,427
+total v6 attacks:   11,414
+number of actors, number of attacks
+02: 202,274
+03: 4,410
+04: 868
+05: 25
+06: 12
+07: 2
+08: 3
+09: 4
+10: 5
+11: 9
+12: 23
+13: 25
+14: 60
+15: 28
+16: 56
+17: 17
+18: 5
+19: 5
+20: 1
+21: 2
+22: 3
+24: 1
+25: 3
